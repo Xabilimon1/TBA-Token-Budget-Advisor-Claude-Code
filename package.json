@@ -27,7 +27,8 @@
     "SKILL.md",
     "scripts/",
     "references/",
-    "examples/"
+    "examples/",
+    "tests/"
   ],
   "engines": {
     "node": ">=16"
