@@ -7,7 +7,7 @@
       "type": "natural",
       "complexity": "simple"
     },
-    "notes": "Pregunta simple de definición"
+    "notes": "Simple definition question (Spanish)"
   },
   {
     "id": 2,
@@ -15,9 +15,9 @@
     "expected": {
       "language": "es",
       "type": "natural",
-      "complexity": "compleja"
+      "complexity": "complex"
     },
-    "notes": "Pregunta técnica compleja con múltiples sub-preguntas"
+    "notes": "Complex technical question with multiple sub-questions"
   },
   {
     "id": 3,
@@ -25,9 +25,9 @@
     "expected": {
       "language": "en",
       "type": "natural",
-      "complexity": "media"
+      "complexity": "medium"
     },
-    "notes": "Petición de código en inglés"
+    "notes": "Code request in English"
   },
   {
     "id": 4,
@@ -35,9 +35,9 @@
     "expected": {
       "language": "es",
       "type": "natural",
-      "complexity": "creativa"
+      "complexity": "creative"
     },
-    "notes": "Petición creativa"
+    "notes": "Creative request"
   },
   {
     "id": 5,
@@ -45,9 +45,9 @@
     "expected": {
       "language": "en",
       "type": "natural",
-      "complexity": "compleja"
+      "complexity": "complex"
     },
-    "notes": "Análisis comparativo complejo en inglés"
+    "notes": "Complex comparative analysis in English"
   },
   {
     "id": 6,
@@ -57,7 +57,7 @@
       "type": "natural",
       "complexity": "simple"
     },
-    "notes": "Pregunta simple de sí/no con matiz"
+    "notes": "Simple yes/no question with nuance"
   },
   {
     "id": 7,
@@ -65,18 +65,18 @@
     "expected": {
       "language": "es",
       "type": "natural",
-      "complexity": "compleja"
+      "complexity": "complex"
     },
-    "notes": "Análisis exhaustivo multi-framework"
+    "notes": "Exhaustive multi-framework analysis"
   },
   {
     "id": 8,
     "prompt": "def fibonacci(n): return n if n <= 1 else fibonacci(n-1) + fibonacci(n-2)",
     "expected": {
       "language": "code",
-      "type": "natural",
-      "complexity": "media"
+      "type": "code",
+      "complexity": "medium"
     },
-    "notes": "Código directo sin contexto"
+    "notes": "Bare code, no surrounding context"
   }
 ]

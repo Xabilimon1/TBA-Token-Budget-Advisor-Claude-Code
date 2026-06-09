@@ -1,62 +1,67 @@
-# Calibración y datos de referencia
+# Calibration and reference data
 
-## Ratios de tokenización por tipo de contenido
+## Tokenization ratios by content type
 
-Estos datos están calibrados empíricamente contra tokenizadores BPE (cl100k_base y similares).
-El tokenizador de Claude es propietario pero produce resultados similares.
+These values are calibrated empirically against BPE tokenizers (cl100k_base
+and similar). Claude's tokenizer is proprietary but produces comparable
+ratios for natural-language text.
 
-| Tipo | Chars/Token | Tokens/Palabra | Notas |
-|------|-------------|----------------|-------|
-| Inglés natural | ~4.0 | ~1.3 | Palabras comunes (≤6 chars) = 1 token |
-| Español natural | ~3.5 | ~1.5 | Acentos y ñ reducen eficiencia |
-| Código Python/JS | ~3.0 | — | Mucha puntuación = más tokens |
-| JSON | ~2.8 | — | Corchetes, comillas, dos puntos |
-| Markdown | ~3.3 | — | Formato (##, **, ```) suma tokens |
+| Type | Chars/Token | Tokens/Word | Notes |
+|------|-------------|-------------|-------|
+| English natural | ~4.0 | ~1.3 | Common short words (<=6 chars) usually = 1 token |
+| Spanish natural | ~3.5 | ~1.5 | Accents and `ñ` reduce efficiency |
+| Code (Python/JS) | ~3.0 | -- | Punctuation density inflates token count |
+| JSON | ~2.8 | -- | Brackets, quotes and colons everywhere |
+| Markdown | ~3.3 | -- | Formatting tokens (`##`, `**`, ` ``` `) add up |
 
-## Multiplicadores de respuesta por complejidad
+## Response multipliers by complexity
 
-Cuántas veces más grande que el input suele ser la respuesta de Claude:
+How many times larger than the input a Claude response tends to be:
 
-| Complejidad | Multiplicador min | Multiplicador max | Ejemplo |
-|-------------|-------------------|--------------------|---------|
-| Simple | 3x | 8x | "¿Qué es X?", "¿Sí o no?" |
-| Media | 8x | 20x | "¿Cómo funciona X?" |
-| Media-Alta | 10x | 25x | Petición de código con contexto |
-| Compleja | 15x | 40x | Análisis detallado, comparativas |
-| Creativa | 10x | 30x | Historias, ensayos, narrativa |
+| Complexity | Mult. min | Mult. max | Example |
+|------------|-----------|-----------|---------|
+| simple | 3x | 8x | "What is X?", yes/no |
+| medium | 8x | 20x | "How does X work?" |
+| medium-high | 10x | 25x | Code request with context |
+| complex | 15x | 40x | Detailed analysis, comparisons |
+| creative | 10x | 30x | Stories, essays, narrative |
 
-## Qué incluye y omite cada nivel de profundidad
+## What each depth level includes/omits
 
-### 🟢 Esencial (25%)
-- **Incluye**: Respuesta directa, conclusión clave, 1-2 frases
-- **Omite**: Contexto, ejemplos, matices, alternativas, disclaimers
-- **Cuándo elegirlo**: Ya conoces el tema, solo necesitas un dato o confirmación
+### Essential (25%)
+- **Includes**: Direct answer, key conclusion, 1-2 sentences
+- **Omits**: Context, examples, nuance, alternatives, disclaimers
+- **When to use**: You already know the topic, you only need a fact or confirmation
 
-### 🟡 Moderado (50%)
-- **Incluye**: Respuesta + contexto necesario + 1 ejemplo práctico
-- **Omite**: Análisis profundo, alternativas, casos borde, referencias
-- **Cuándo elegirlo**: Quieres entender lo suficiente para actuar
+### Moderate (50%)
+- **Includes**: Answer + necessary context + 1 practical example
+- **Omits**: Deep analysis, alternatives, edge cases, references
+- **When to use**: You want to understand enough to act
 
-### 🟠 Detallado (75%)
-- **Incluye**: Respuesta completa + múltiples ejemplos + pros/contras + alternativas
-- **Omite**: Casos extremos, referencias exhaustivas, perspectivas marginales
-- **Cuándo elegirlo**: Necesitas tomar una decisión informada o aprender a fondo
+### Detailed (75%)
+- **Includes**: Full answer + multiple examples + pros/cons + alternatives
+- **Omits**: Extreme edge cases, exhaustive references, marginal perspectives
+- **When to use**: Making an informed decision or learning in depth
 
-### 🔴 Exhaustivo (100%)
-- **Incluye**: Todo — análisis completo, todas las perspectivas, código completo, referencias
-- **Omite**: Nada — máxima profundidad posible
-- **Cuándo elegirlo**: Investigación, documentación, temas críticos donde no quieres que se omita nada
+### Exhaustive (100%)
+- **Includes**: Everything -- full analysis, every perspective, complete code, references
+- **Omits**: Nothing -- maximum possible depth
+- **When to use**: Research, documentation, critical topics where nothing should be left out
 
-## Precisión del estimador
+## Estimator accuracy
 
-- **Error promedio**: ~13.5% en tests de calibración
-- **Precisión declarada**: 85-90%
-- **Varianza**: ±15% respecto a valores reales
-- **Peor caso**: textos muy cortos (<10 chars) o con muchos emojis/caracteres especiales
+The numbers below come from `tests/test_benchmark.py`, which compares the
+heuristic estimator against `tiktoken` (`cl100k_base`) on the prompts in
+`examples/sample_prompts.json`. Run the script yourself to reproduce.
 
-## Limitaciones conocidas
+- **Mean absolute error**: ~13.5% on the sample corpus
+- **Headline accuracy**: 85-90% (i.e. `1 - MAE`)
+- **Variance**: +/- 15% on individual prompts
+- **Worst case**: very short text (<10 chars) or text with many emojis / unusual Unicode
 
-1. Sin tokenizador real — heurísticas solamente
-2. No accede a límites de sesión/plan del usuario
-3. Los emojis y caracteres Unicode no-estándar pueden subrepresentarse
-4. Las respuestas estimadas son aproximaciones basadas en complejidad, no predicciones exactas
+## Known limitations
+
+1. No real tokenizer in the hot path -- heuristics only (tiktoken is optional, for benchmarks)
+2. Cannot read user-side session / plan limits
+3. Emojis and non-standard Unicode can be under-represented
+4. Response estimates are approximations based on prompt complexity, not exact predictions
