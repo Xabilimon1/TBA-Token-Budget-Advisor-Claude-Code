@@ -1,99 +1,96 @@
 ---
 name: token-budget-advisor
 description: >
-  Analiza prompts y ofrece opciones de profundidad/tokens ANTES de responder.
-  Usa esta skill cuando el usuario quiera controlar el consumo de tokens, ajustar la
-  profundidad de respuesta, elegir entre respuestas cortas/largas, u optimizar su prompt.
-  Se activa con: "tokens", "presupuesto de tokens", "profundidad", "consumo",
-  "respuesta corta vs larga", "token budget", "cuántos tokens", "ahorrar tokens",
-  "responde al 50%", "dame la versión corta", "quiero controlar cuánto usas",
-  "ajusta tu respuesta", o cualquier variante. Si el usuario quiere controlar extensión,
-  detalle o profundidad — incluso sin mencionar tokens explícitamente — esta skill aplica.
+  Analyze prompts and offer depth / token-budget options BEFORE answering.
+  Use this skill when the user wants to control token usage, tune response
+  depth, choose between short and long answers, or optimize their prompt.
+  Triggers on: "tokens", "token budget", "depth", "consumption", "short vs
+  long answer", "how many tokens", "save tokens", "answer at 50%", "give me
+  the short version", "I want to control how much you use", "tune your
+  response", "presupuesto de tokens", "profundidad", "responde al 50%",
+  "dame la versión corta", or any equivalent phrasing in English or Spanish.
+  If the user wants to control length, detail or depth -- even without
+  mentioning tokens explicitly -- this skill applies.
 ---
 
 # Token Budget Advisor
 
-Skill que intercepta el flujo de respuesta para ofrecer al usuario una elección
-informada sobre cuánta profundidad/tokens quiere consumir, ANTES de responder.
+A skill that intercepts the response flow so the user can make an informed
+choice about how much depth / how many tokens to spend BEFORE the answer is
+generated.
 
-## Flujo de trabajo
+## Workflow
 
-### Paso 1: Analizar el prompt
+### Step 1: Analyze the prompt
 
-Ejecuta el estimador sobre el prompt del usuario. El script está en `scripts/token_estimator.py`
-dentro del directorio de esta skill.
+Run the estimator on the user's prompt. The script lives at
+`scripts/token_estimator.py` inside this skill's directory.
 
 ```bash
-python3 <SKILL_DIR>/scripts/token_estimator.py --text "PROMPT_DEL_USUARIO"
+python3 <SKILL_DIR>/scripts/token_estimator.py --text "USER_PROMPT"
 ```
 
-Para prompts largos o con comillas, usa un archivo temporal:
+For long prompts or prompts containing quotes, use a temp file:
 
 ```bash
 cat > /tmp/_tba_prompt.txt << 'PROMPT_EOF'
-PROMPT_DEL_USUARIO
+USER_PROMPT
 PROMPT_EOF
 python3 <SKILL_DIR>/scripts/token_estimator.py --file /tmp/_tba_prompt.txt
 ```
 
-Reemplaza `<SKILL_DIR>` con la ruta real donde está instalada esta skill (normalmente
-`.claude/skills/token-budget-advisor` o la ruta que aparezca en tu configuración).
+Replace `<SKILL_DIR>` with the real install path (usually
+`.claude/skills/token-budget-advisor` or whatever appears in your config).
 
-El script devuelve JSON con: `input_tokens`, `detected_language`, `detected_type`,
-`complexity`, `response_estimates` (por nivel 25/50/75/100), y `total_estimates`.
+The script returns JSON with: `input_tokens`, `detected_language`,
+`detected_type`, `complexity`, `response_estimates` (per level
+25/50/75/100), and `total_estimates`.
 
-### Paso 2: Presentar opciones al usuario
+### Step 2: Present the options to the user
 
-Presenta la información de forma clara ANTES de responder al prompt real.
-Consulta `references/calibration.md` para entender qué incluye y omite cada nivel.
+Show the information clearly BEFORE answering the real prompt. See
+`references/calibration.md` for what each level includes and omits.
 
-Formato recomendado:
+Recommended format:
 
 ```
-📊 Análisis de tu prompt
-━━━━━━━━━━━━━━━━━━━━━━━━
-📝 Input: ~X tokens | 🔍 Tipo: [tipo] | 📏 Complejidad: [nivel]
+Prompt analysis
+---------------
+Input: ~X tokens | Type: [type] | Complexity: [level]
 
-🎯 Elige tu nivel de profundidad:
+Choose your depth level:
 
-🟢 Esencial (25%)  → ~Y tokens
-   Respuesta directa al grano. Para consultas rápidas.
+[1] Essential   (25%)  -> ~Y tokens   Direct answer only
+[2] Moderate    (50%)  -> ~Z tokens   Answer + context + 1 example
+[3] Detailed    (75%)  -> ~W tokens   Full answer with alternatives
+[4] Exhaustive (100%)  -> ~V tokens   Everything, no limits
 
-🟡 Moderado (50%)  → ~Z tokens
-   Contexto + 1 ejemplo. Para entender y actuar.
-
-🟠 Detallado (75%) → ~W tokens
-   Completo con alternativas. Para aprender a fondo.
-
-🔴 Exhaustivo (100%) → ~V tokens
-   Análisis total. Para investigación y documentación.
-
-⚠️ Estimación heurística (~85-90% precisión, ±15%).
+Heuristic estimate (~85-90% accuracy, +/- 15%).
 ```
 
-### Paso 3: Esperar la elección
+### Step 3: Wait for the choice
 
-Pregunta al usuario qué nivel prefiere. Si usa Claude Code en terminal, presenta las
-opciones como texto claro y espera su respuesta.
+Ask the user which level they prefer. In Claude Code's terminal, render the
+options as plain text and wait for their reply.
 
-### Paso 4: Responder según el nivel elegido
+### Step 4: Respond at the chosen level
 
-| Nivel | Extensión | Qué incluir |
-|-------|-----------|-------------|
-| 25% Esencial | 2-4 frases máximo | Solo la respuesta directa. Sin preámbulos. |
-| 50% Moderado | 1-3 párrafos | Respuesta + contexto mínimo + 1 ejemplo si aplica. |
-| 75% Detallado | Respuesta estructurada | Múltiples ejemplos, pros/contras, alternativas. |
-| 100% Exhaustivo | Sin restricción | Todo: análisis completo, código completo, todas las perspectivas. |
+| Level | Length | What to include |
+|-------|--------|-----------------|
+| 25% Essential | 2-4 sentences max | Just the direct answer. No preamble. |
+| 50% Moderate | 1-3 paragraphs | Answer + minimal context + 1 example if relevant. |
+| 75% Detailed | Structured response | Multiple examples, pros/cons, alternatives. |
+| 100% Exhaustive | No limit | Everything: full analysis, complete code, every perspective. |
 
-## Atajos
+## Shortcuts
 
-Si el usuario ya indica un nivel directamente, no preguntes — responde al nivel indicado:
+If the user already states a level, do not ask -- just answer at that level:
 
-- "al 25%" / "versión corta" / "resumen" / "tldr" → 25%
-- "al 50%" / "moderado" / "normal" → 50%
-- "al 75%" / "detallado" / "completo" → 75%
-- "al 100%" / "exhaustivo" / "todo" / "sin límite" → 100%
+- "at 25%" / "al 25%" / "short version" / "tldr" / "summary"            -> 25%
+- "at 50%" / "al 50%" / "moderate" / "normal"                            -> 50%
+- "at 75%" / "al 75%" / "detailed" / "complete"                          -> 75%
+- "at 100%" / "al 100%" / "exhaustive" / "everything" / "no limit"       -> 100%
 
-Si el usuario estableció un nivel en un mensaje anterior de la misma sesión,
-mantén ese nivel para las siguientes respuestas sin volver a preguntar (a menos
-que pida cambiarlo).
+If the user picked a level in a previous message of the same session, keep
+that level for subsequent responses without asking again -- unless they
+ask to change it.
